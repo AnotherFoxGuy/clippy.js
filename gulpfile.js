@@ -1,49 +1,49 @@
-/**
- * Gulp Build
- * https://www.smore.com/clippy-js
- */
+const {src, dest, parallel} = require('gulp');
+const minifyCSS = require('gulp-csso');
+const concat = require('gulp-concat');
+const uglify = require("gulp-uglify");
+const rename = require("gulp-rename");
+const imagemin = require("gulp-imagemin");
 
-var gulp = require("gulp"),
-    uglify = require("gulp-uglify"),
-    minify = require("gulp-minify-css"),
-    concat = require("gulp-concat"),
-    pngquant = require("imagemin-pngquant"),
-    rename = require("gulp-rename"),
-    imagemin = require("gulp-imagemin");
+function mapfile_image() {
+    return src("agents/**/*.png")
+        .pipe(imagemin())
+        .pipe(dest("build/agents"));
+};
 
-gulp.task("build-mapfile-image", function () {
-    return gulp.src("agents/**/*.png")
-        .pipe(imagemin({progressive: true, use: [pngquant()]}))
-        .pipe(gulp.dest("build/agents"));
-});
+function mapfile() {
+    return src(["agents/**/*", "!agents/**/*.png", "!agents/**/*.js"])
+        .pipe(dest("build/agents"));
+};
 
-gulp.task("build-mapfile", function () {
-    return gulp.src(["agents/**/*", "!agents/**/*.png", "!agents/**/*.js"])
-        .pipe(gulp.dest("build/agents"));
-});
-
-gulp.task("build-agents", function () {
-    return gulp.src("agents/**/*.js")
+function agents() {
+    return src("agents/**/*.js")
         .pipe(uglify())
-        .pipe(gulp.dest("build/agents"));
-});
+        .pipe(dest("build/agents"));
+};
 
-gulp.task("build-css", function () {
-    return gulp.src("src/clippy.css")
-        .pipe(gulp.dest("build"))
-        .pipe(minify())
-        .pipe(gulp.dest("build"))
+function css() {
+    return src("src/clippy.css")
+        .pipe(dest("build"))
+        .pipe(minifyCSS())
+        .pipe(dest("build"))
         .pipe(rename("clippy.min.css"))
-        .pipe(gulp.dest("build"))
-});
+        .pipe(dest("build"))
+};
 
-gulp.task("build-js", function () {
-    return gulp.src("src/**/*.js")
+function js() {
+    return src("src/**/*.js")
         .pipe(concat("clippy.js"))
-        .pipe(gulp.dest("build"))
+        .pipe(dest("build"))
         .pipe(uglify())
         .pipe(rename("clippy.min.js"))
-        .pipe(gulp.dest("build"));
-});
+        .pipe(dest("build"));
+};
 
-gulp.task("default", ["build-js", "build-css", "build-agents", "build-mapfile","build-mapfile-image"]);
+exports.mapfile_image = mapfile_image;
+exports.mapfile = mapfile;
+exports.agents = agents;
+exports.css = css;
+exports.js = js;
+
+exports.default = parallel(mapfile_image,mapfile, agents, css, js);
